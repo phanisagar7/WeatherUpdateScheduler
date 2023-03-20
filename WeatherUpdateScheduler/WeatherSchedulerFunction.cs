@@ -18,20 +18,21 @@ namespace WeatherUpdateScheduler
             try
             {
                 DataTable table = new();
+                DateTime dateTime = DateTime.Now;
                 using HttpClient client = new();
-                String connectionString = Environment.GetEnvironmentVariable("SqlConnection");
+                string connectionString = Environment.GetEnvironmentVariable("SqlConnection");
                 client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("WeatherApiUrl"));
-              
+
                 foreach (var item in HelperConstants.WeatherDetailTableColumns)
                     table.Columns.Add(item);
-              
+
                 foreach (var city in HelperConstants.Cities)
                 {
                     HttpResponseMessage httpResponse = await client.GetAsync($"forecast?latitude={city.Latitude}&longitude={city.Longitude}&current_weather=true");
                     if (httpResponse.IsSuccessStatusCode)
                     {
                         WeatherUpdateResponse weatherUpdateResponse = await httpResponse.Content.ReadAsAsync<WeatherUpdateResponse>();
-                        table.Rows.Add(new Object[] { null, city.Country, city.Name, weatherUpdateResponse.Current_Weather.Temperature, weatherUpdateResponse.Current_Weather.WindSpeed, weatherUpdateResponse.Current_Weather.Time, weatherUpdateResponse.Current_Weather.WeatherCode });
+                        table.Rows.Add(new Object[] { null, city.Country, city.Name, weatherUpdateResponse.Current_Weather.Temperature, weatherUpdateResponse.Current_Weather.WindSpeed, dateTime, weatherUpdateResponse.Current_Weather.WeatherCode });
                     }
                 }
                 using var bulkCopy = new SqlBulkCopy(connectionString);
